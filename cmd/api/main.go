@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	_ "embed"
+	"github.com/guillermoBallester/go-platform-cv/internal/adapter/handler/http"
 	"github.com/guillermoBallester/go-platform-cv/internal/adapter/storage/postgres"
 	"github.com/guillermoBallester/go-platform-cv/internal/service"
 	"github.com/guillermoBallester/go-platform-cv/sql"
@@ -34,12 +35,12 @@ func main() {
 		log.Printf("Warning: could not seed skills: %v", err)
 	}
 
-	skills, err := cvSvc.GetSkills(ctx)
-	if err != nil {
-		panic("error getting skills")
+	// Init server
+	router := http.NewRouter(cvSvc)
+	log.Println("Server initiated in http://localhost:8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
 	}
-
-	log.Printf("Retrieved %d skills", len(skills))
 }
 
 func initDB(ctx context.Context) *pgxpool.Pool {
