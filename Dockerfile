@@ -15,5 +15,8 @@ RUN apk add --no-cache ca-certificates
 # Copy the binary
 COPY --from=builder /go-cv-app .
 
+# Copy static folders
+COPY --from=builder /app/templates ./templates
+
 EXPOSE 8080
 CMD ["./go-cv-app"]

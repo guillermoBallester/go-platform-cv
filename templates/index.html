@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-base-300 p-8">
+<div class="max-w-4xl mx-auto">
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-primary">My Skills</h1>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {{ range .Skills }}
+        <div class="card bg-base-100 shadow-xl border border-primary/20">
+            <div class="card-body">
+                <h2 class="card-title text-primary">{{ .Name }}</h2>
+                <p class="text-sm opacity-70">Category: {{ .Category }}</p>
+                <div class="mt-2">
+                    <progress class="progress progress-primary w-full" value="{{ .Proficiency }}" max="100"></progress>
+                    <span class="text-xs">{{ .Proficiency }}%</span>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+</body>
+</html>
