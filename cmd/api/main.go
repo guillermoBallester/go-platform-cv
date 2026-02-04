@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/guillermoBallester/go-platform-cv/internal/adapter/storage/postgres"
+	"github.com/guillermoBallester/go-platform-cv/internal/service"
 	"github.com/guillermoBallester/go-platform-cv/sql"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
@@ -24,15 +25,17 @@ func main() {
 
 	// Dependency Injection
 	queries := postgres.New(dbPool)
+	skillsRepo := postgres.NewSkillRepository(queries)
+	cvSvc := service.NewCVService(skillsRepo)
 
-	skills, err := queries.ListSkills(ctx)
+	skills, err := cvSvc.GetSkills(ctx)
 	if err != nil {
-		return
-	}
-	if len(skills) > 0 {
-		fmt.Printf("Found %d skills", len(skills))
+		panic("error getting skills")
 	}
 
+	if len(skills) == 0 {
+		fmt.Println("No skills found")
+	}
 }
 
 func initDB(ctx context.Context) *pgxpool.Pool {
