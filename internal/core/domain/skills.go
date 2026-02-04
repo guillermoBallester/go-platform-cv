@@ -6,4 +6,5 @@ type Skill struct {
 	Name        string
 	Category    string
 	Proficiency int32
+	LogoPath    string `json:"logo_url"`
 }

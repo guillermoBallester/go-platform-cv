@@ -12,31 +12,38 @@ import (
 )
 
 const createSkill = `-- name: CreateSkill :one
-INSERT INTO skills (name, category, proficiency)
-VALUES ($1, $2, $3)
-RETURNING id, name, category, proficiency
+INSERT INTO skills (name, category, proficiency, logo_url)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, category, proficiency, logo_url
 `
 
 type CreateSkillParams struct {
 	Name        string      `json:"name"`
 	Category    string      `json:"category"`
 	Proficiency pgtype.Int4 `json:"proficiency"`
+	LogoUrl     pgtype.Text `json:"logo_url"`
 }
 
 func (q *Queries) CreateSkill(ctx context.Context, arg CreateSkillParams) (Skill, error) {
-	row := q.db.QueryRow(ctx, createSkill, arg.Name, arg.Category, arg.Proficiency)
+	row := q.db.QueryRow(ctx, createSkill,
+		arg.Name,
+		arg.Category,
+		arg.Proficiency,
+		arg.LogoUrl,
+	)
 	var i Skill
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Category,
 		&i.Proficiency,
+		&i.LogoUrl,
 	)
 	return i, err
 }
 
 const listSkills = `-- name: ListSkills :many
-SELECT id, name, category, proficiency FROM skills ORDER BY category, name
+SELECT id, name, category, proficiency, logo_url FROM skills ORDER BY category, name
 `
 
 func (q *Queries) ListSkills(ctx context.Context) ([]Skill, error) {
@@ -53,6 +60,7 @@ func (q *Queries) ListSkills(ctx context.Context) ([]Skill, error) {
 			&i.Name,
 			&i.Category,
 			&i.Proficiency,
+			&i.LogoUrl,
 		); err != nil {
 			return nil, err
 		}

@@ -17,6 +17,7 @@ COPY --from=builder /go-cv-app .
 
 # Copy static folders
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/assets ./assets
 
 EXPOSE 8080
 CMD ["./go-cv-app"]

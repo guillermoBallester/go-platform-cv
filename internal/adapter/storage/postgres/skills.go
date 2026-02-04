@@ -24,16 +24,7 @@ func (r *SkillRepo) GetSkills(ctx context.Context) ([]domain.Skill, error) {
 		return nil, err
 	}
 
-	var skills []domain.Skill
-	for _, s := range dbSkills {
-		skills = append(skills, domain.Skill{
-			ID:          s.ID,
-			Name:        s.Name,
-			Category:    s.Category,
-			Proficiency: s.Proficiency.Int32,
-		})
-	}
-	return skills, nil
+	return toDomainSkills(dbSkills), nil
 }
 
 // CreateSkill adds a new skill in the database using the provided context and domain.Skill object.
@@ -42,6 +33,7 @@ func (r *SkillRepo) CreateSkill(ctx context.Context, s domain.Skill) error {
 		Name:        s.Name,
 		Category:    s.Category,
 		Proficiency: pgtype.Int4{Int32: s.Proficiency, Valid: true},
+		LogoUrl:     pgtype.Text{String: s.LogoPath, Valid: s.LogoPath != ""},
 	})
 	return err
 }

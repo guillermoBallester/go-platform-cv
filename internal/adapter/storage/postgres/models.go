@@ -13,4 +13,5 @@ type Skill struct {
 	Name        string      `json:"name"`
 	Category    string      `json:"category"`
 	Proficiency pgtype.Int4 `json:"proficiency"`
+	LogoUrl     pgtype.Text `json:"logo_url"`
 }
