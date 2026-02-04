@@ -1,0 +1,6 @@
+[
+  { "name": "Go", "category": "Backend", "proficiency": 90 },
+  { "name": "Postgres", "category": "Database", "proficiency": 80 },
+  { "name": "Terraform", "category": "Infra", "proficiency": 75 },
+  { "name": "Docker", "category": "Infra", "proficiency": 85 }
+]

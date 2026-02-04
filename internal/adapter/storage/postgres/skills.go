@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"github.com/guillermoBallester/go-platform-cv/internal/core/domain"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // SkillRepo represents a repository for managing skills, using the provided Queries struct.
@@ -33,4 +34,14 @@ func (r *SkillRepo) GetSkills(ctx context.Context) ([]domain.Skill, error) {
 		})
 	}
 	return skills, nil
+}
+
+// CreateSkill adds a new skill in the database using the provided context and domain.Skill object.
+func (r *SkillRepo) CreateSkill(ctx context.Context, s domain.Skill) error {
+	_, err := r.queries.CreateSkill(ctx, CreateSkillParams{
+		Name:        s.Name,
+		Category:    s.Category,
+		Proficiency: pgtype.Int4{Int32: s.Proficiency, Valid: true},
+	})
+	return err
 }

@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
+	_ "embed"
 	"github.com/guillermoBallester/go-platform-cv/internal/adapter/storage/postgres"
 	"github.com/guillermoBallester/go-platform-cv/internal/service"
 	"github.com/guillermoBallester/go-platform-cv/sql"
+	"github.com/guillermoBallester/go-platform-cv/sql/data"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"os"
@@ -28,14 +29,17 @@ func main() {
 	skillsRepo := postgres.NewSkillRepository(queries)
 	cvSvc := service.NewCVService(skillsRepo)
 
+	// Seed data
+	if err := cvSvc.SeedSkills(ctx, data.SkillsJSON); err != nil {
+		log.Printf("Warning: could not seed skills: %v", err)
+	}
+
 	skills, err := cvSvc.GetSkills(ctx)
 	if err != nil {
 		panic("error getting skills")
 	}
 
-	if len(skills) == 0 {
-		fmt.Println("No skills found")
-	}
+	log.Printf("Retrieved %d skills", len(skills))
 }
 
 func initDB(ctx context.Context) *pgxpool.Pool {

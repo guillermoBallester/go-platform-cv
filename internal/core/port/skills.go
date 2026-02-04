@@ -8,4 +8,5 @@ import (
 // SkillRepository specifies methods for accessing and manipulating skills in a repository.
 type SkillRepository interface {
 	GetSkills(ctx context.Context) ([]domain.Skill, error)
+	CreateSkill(ctx context.Context, skill domain.Skill) error
 }
