@@ -1,6 +1,6 @@
 [
-  { "name": "Go", "category": "Backend", "proficiency": 90 },
-  { "name": "Postgres", "category": "Database", "proficiency": 80 },
-  { "name": "Terraform", "category": "Infra", "proficiency": 75 },
-  { "name": "Docker", "category": "Infra", "proficiency": 85 }
+  { "name": "Go", "category": "Backend", "proficiency": 90, "logo_url": "/assets/logos/go.svg" },
+  { "name": "Postgres", "category": "Database", "proficiency": 80, "logo_url": "/assets/logos/postgres.svg" },
+  { "name": "Terraform", "category": "Infra", "proficiency": 75, "logo_url": "/assets/logos/terraform.svg" },
+  { "name": "Docker", "category": "Infra", "proficiency": 85, "logo_url": "/assets/logos/docker.svg" }
 ]

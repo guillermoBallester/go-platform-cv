@@ -13,6 +13,8 @@ type Router struct {
 func NewRouter(cvSvc *service.CVService) *Router {
 	g := gin.Default()
 
+	g.Static("/assets", "./assets")
+
 	r := &Router{
 		engine: g,
 		cvSvc:  cvSvc,

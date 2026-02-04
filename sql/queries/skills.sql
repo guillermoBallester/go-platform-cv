@@ -2,6 +2,6 @@
 SELECT * FROM skills ORDER BY category, name;
 
 -- name: CreateSkill :one
-INSERT INTO skills (name, category, proficiency)
-VALUES ($1, $2, $3)
+INSERT INTO skills (name, category, proficiency, logo_url)
+VALUES ($1, $2, $3, $4)
 RETURNING *;

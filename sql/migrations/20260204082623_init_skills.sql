@@ -4,7 +4,8 @@ CREATE TABLE skills (
                         id SERIAL PRIMARY KEY,
                         name TEXT NOT NULL,
                         category TEXT NOT NULL, -- "Backend", "Cloud", etc.
-                        proficiency INT DEFAULT 0
+                        proficiency INT DEFAULT 0,
+                        logo_url TEXT DEFAULT ''
 );
 -- +goose StatementEnd
 
