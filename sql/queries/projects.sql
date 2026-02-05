@@ -5,14 +5,13 @@ SELECT * FROM projects ORDER BY start_date DESC NULLS LAST;
 SELECT * FROM projects WHERE id = $1;
 
 -- name: CreateProject :one
-INSERT INTO projects (name, description, url, repo_url, start_date, end_date)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO projects (name, description, start_date, end_date)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: UpdateProject :one
 UPDATE projects
-SET name = $2, description = $3, url = $4, repo_url = $5,
-    start_date = $6, end_date = $7, updated_at = NOW()
+SET name = $2, description = $3, start_date = $4, end_date = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 
@@ -48,7 +47,7 @@ ORDER BY e.start_date DESC;
 -- Full project with skills (for display/RAG)
 -- name: GetProjectWithSkills :many
 SELECT
-    p.id, p.name, p.description, p.url, p.repo_url, p.start_date, p.end_date,
+    p.id, p.name, p.description, p.start_date, p.end_date,
     p.created_at, p.updated_at,
     s.id as skill_id, s.name as skill_name, s.category as skill_category
 FROM projects p

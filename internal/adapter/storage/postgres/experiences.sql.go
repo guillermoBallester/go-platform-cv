@@ -251,7 +251,7 @@ func (q *Queries) ListExperiencesForSkill(ctx context.Context, skillID int32) ([
 }
 
 const listProjectsForExperience = `-- name: ListProjectsForExperience :many
-SELECT p.id, p.name, p.description, p.url, p.repo_url, p.start_date, p.end_date, p.created_at, p.updated_at FROM projects p
+SELECT p.id, p.name, p.description, p.start_date, p.end_date, p.created_at, p.updated_at FROM projects p
 JOIN experience_projects ep ON p.id = ep.project_id
 WHERE ep.experience_id = $1
 ORDER BY p.start_date DESC
@@ -270,8 +270,6 @@ func (q *Queries) ListProjectsForExperience(ctx context.Context, experienceID in
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.Url,
-			&i.RepoUrl,
 			&i.StartDate,
 			&i.EndDate,
 			&i.CreatedAt,

@@ -61,8 +61,6 @@ func toDomainProject(p Project) domain.Project {
 		ID:          p.ID,
 		Name:        p.Name,
 		Description: p.Description,
-		URL:         p.Url.String,
-		RepoURL:     p.RepoUrl.String,
 		CreatedAt:   p.CreatedAt.Time,
 		UpdatedAt:   p.UpdatedAt.Time,
 	}

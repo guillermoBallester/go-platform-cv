@@ -27,16 +27,14 @@ func (q *Queries) AddSkillToProject(ctx context.Context, arg AddSkillToProjectPa
 }
 
 const createProject = `-- name: CreateProject :one
-INSERT INTO projects (name, description, url, repo_url, start_date, end_date)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, name, description, url, repo_url, start_date, end_date, created_at, updated_at
+INSERT INTO projects (name, description, start_date, end_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, description, start_date, end_date, created_at, updated_at
 `
 
 type CreateProjectParams struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	Url         pgtype.Text `json:"url"`
-	RepoUrl     pgtype.Text `json:"repo_url"`
 	StartDate   pgtype.Date `json:"start_date"`
 	EndDate     pgtype.Date `json:"end_date"`
 }
@@ -45,8 +43,6 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 	row := q.db.QueryRow(ctx, createProject,
 		arg.Name,
 		arg.Description,
-		arg.Url,
-		arg.RepoUrl,
 		arg.StartDate,
 		arg.EndDate,
 	)
@@ -55,8 +51,6 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.ID,
 		&i.Name,
 		&i.Description,
-		&i.Url,
-		&i.RepoUrl,
 		&i.StartDate,
 		&i.EndDate,
 		&i.CreatedAt,
@@ -75,7 +69,7 @@ func (q *Queries) DeleteProject(ctx context.Context, id int32) error {
 }
 
 const getProject = `-- name: GetProject :one
-SELECT id, name, description, url, repo_url, start_date, end_date, created_at, updated_at FROM projects WHERE id = $1
+SELECT id, name, description, start_date, end_date, created_at, updated_at FROM projects WHERE id = $1
 `
 
 func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
@@ -85,8 +79,6 @@ func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
 		&i.ID,
 		&i.Name,
 		&i.Description,
-		&i.Url,
-		&i.RepoUrl,
 		&i.StartDate,
 		&i.EndDate,
 		&i.CreatedAt,
@@ -97,7 +89,7 @@ func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
 
 const getProjectWithSkills = `-- name: GetProjectWithSkills :many
 SELECT
-    p.id, p.name, p.description, p.url, p.repo_url, p.start_date, p.end_date,
+    p.id, p.name, p.description, p.start_date, p.end_date,
     p.created_at, p.updated_at,
     s.id as skill_id, s.name as skill_name, s.category as skill_category
 FROM projects p
@@ -111,8 +103,6 @@ type GetProjectWithSkillsRow struct {
 	ID            int32              `json:"id"`
 	Name          string             `json:"name"`
 	Description   string             `json:"description"`
-	Url           pgtype.Text        `json:"url"`
-	RepoUrl       pgtype.Text        `json:"repo_url"`
 	StartDate     pgtype.Date        `json:"start_date"`
 	EndDate       pgtype.Date        `json:"end_date"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
@@ -136,8 +126,6 @@ func (q *Queries) GetProjectWithSkills(ctx context.Context, id int32) ([]GetProj
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.Url,
-			&i.RepoUrl,
 			&i.StartDate,
 			&i.EndDate,
 			&i.CreatedAt,
@@ -196,7 +184,7 @@ func (q *Queries) ListExperiencesForProject(ctx context.Context, projectID int32
 }
 
 const listProjects = `-- name: ListProjects :many
-SELECT id, name, description, url, repo_url, start_date, end_date, created_at, updated_at FROM projects ORDER BY start_date DESC NULLS LAST
+SELECT id, name, description, start_date, end_date, created_at, updated_at FROM projects ORDER BY start_date DESC NULLS LAST
 `
 
 func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
@@ -212,8 +200,6 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.Url,
-			&i.RepoUrl,
 			&i.StartDate,
 			&i.EndDate,
 			&i.CreatedAt,
@@ -230,7 +216,7 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 }
 
 const listProjectsForSkill = `-- name: ListProjectsForSkill :many
-SELECT p.id, p.name, p.description, p.url, p.repo_url, p.start_date, p.end_date, p.created_at, p.updated_at FROM projects p
+SELECT p.id, p.name, p.description, p.start_date, p.end_date, p.created_at, p.updated_at FROM projects p
 JOIN project_skills ps ON p.id = ps.project_id
 WHERE ps.skill_id = $1
 ORDER BY p.start_date DESC NULLS LAST
@@ -249,8 +235,6 @@ func (q *Queries) ListProjectsForSkill(ctx context.Context, skillID int32) ([]Pr
 			&i.ID,
 			&i.Name,
 			&i.Description,
-			&i.Url,
-			&i.RepoUrl,
 			&i.StartDate,
 			&i.EndDate,
 			&i.CreatedAt,
@@ -315,18 +299,15 @@ func (q *Queries) RemoveSkillFromProject(ctx context.Context, arg RemoveSkillFro
 
 const updateProject = `-- name: UpdateProject :one
 UPDATE projects
-SET name = $2, description = $3, url = $4, repo_url = $5,
-    start_date = $6, end_date = $7, updated_at = NOW()
+SET name = $2, description = $3, start_date = $4, end_date = $5, updated_at = NOW()
 WHERE id = $1
-RETURNING id, name, description, url, repo_url, start_date, end_date, created_at, updated_at
+RETURNING id, name, description, start_date, end_date, created_at, updated_at
 `
 
 type UpdateProjectParams struct {
 	ID          int32       `json:"id"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	Url         pgtype.Text `json:"url"`
-	RepoUrl     pgtype.Text `json:"repo_url"`
 	StartDate   pgtype.Date `json:"start_date"`
 	EndDate     pgtype.Date `json:"end_date"`
 }
@@ -336,8 +317,6 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		arg.ID,
 		arg.Name,
 		arg.Description,
-		arg.Url,
-		arg.RepoUrl,
 		arg.StartDate,
 		arg.EndDate,
 	)
@@ -346,8 +325,6 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		&i.ID,
 		&i.Name,
 		&i.Description,
-		&i.Url,
-		&i.RepoUrl,
 		&i.StartDate,
 		&i.EndDate,
 		&i.CreatedAt,

@@ -51,8 +51,6 @@ type Project struct {
 	ID          int32              `json:"id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
-	Url         pgtype.Text        `json:"url"`
-	RepoUrl     pgtype.Text        `json:"repo_url"`
 	StartDate   pgtype.Date        `json:"start_date"`
 	EndDate     pgtype.Date        `json:"end_date"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
