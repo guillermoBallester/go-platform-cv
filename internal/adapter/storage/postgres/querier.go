@@ -6,11 +6,60 @@ package postgres
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	// Project linking
+	AddProjectToExperience(ctx context.Context, arg AddProjectToExperienceParams) error
+	// Skill linking
+	AddSkillToAchievement(ctx context.Context, arg AddSkillToAchievementParams) error
+	// Skill linking
+	AddSkillToExperience(ctx context.Context, arg AddSkillToExperienceParams) error
+	// Skill linking
+	AddSkillToProject(ctx context.Context, arg AddSkillToProjectParams) error
+	CreateAchievement(ctx context.Context, arg CreateAchievementParams) (Achievement, error)
+	CreateExperience(ctx context.Context, arg CreateExperienceParams) (Experience, error)
+	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateSkill(ctx context.Context, arg CreateSkillParams) (Skill, error)
+	DeleteAchievement(ctx context.Context, id int32) error
+	DeleteExperience(ctx context.Context, id int32) error
+	DeleteProject(ctx context.Context, id int32) error
+	GetAchievement(ctx context.Context, id int32) (Achievement, error)
+	// Full achievement with skills (for display/RAG)
+	GetAchievementWithSkills(ctx context.Context, id int32) ([]GetAchievementWithSkillsRow, error)
+	GetExperience(ctx context.Context, id int32) (Experience, error)
+	// Full experience with skills (for display/RAG)
+	GetExperienceWithSkills(ctx context.Context, id int32) ([]GetExperienceWithSkillsRow, error)
+	GetProject(ctx context.Context, id int32) (Project, error)
+	// Full project with skills (for display/RAG)
+	GetProjectWithSkills(ctx context.Context, id int32) ([]GetProjectWithSkillsRow, error)
+	ListAchievements(ctx context.Context) ([]Achievement, error)
+	// Filter by context
+	ListAchievementsForExperience(ctx context.Context, experienceID pgtype.Int4) ([]Achievement, error)
+	ListAchievementsForProject(ctx context.Context, projectID pgtype.Int4) ([]Achievement, error)
+	ListAchievementsForSkill(ctx context.Context, skillID int32) ([]Achievement, error)
+	// RAG context query: Get all achievements with their related experience/project context
+	ListAchievementsWithContext(ctx context.Context) ([]ListAchievementsWithContextRow, error)
+	ListExperiences(ctx context.Context) ([]Experience, error)
+	// Experience linking
+	ListExperiencesForProject(ctx context.Context, projectID int32) ([]Experience, error)
+	ListExperiencesForSkill(ctx context.Context, skillID int32) ([]Experience, error)
+	ListProjects(ctx context.Context) ([]Project, error)
+	ListProjectsForExperience(ctx context.Context, experienceID int32) ([]Project, error)
+	ListProjectsForSkill(ctx context.Context, skillID int32) ([]Project, error)
 	ListSkills(ctx context.Context) ([]Skill, error)
+	ListSkillsForAchievement(ctx context.Context, achievementID int32) ([]Skill, error)
+	ListSkillsForExperience(ctx context.Context, experienceID int32) ([]Skill, error)
+	ListSkillsForProject(ctx context.Context, projectID int32) ([]Skill, error)
+	RemoveProjectFromExperience(ctx context.Context, arg RemoveProjectFromExperienceParams) error
+	RemoveSkillFromAchievement(ctx context.Context, arg RemoveSkillFromAchievementParams) error
+	RemoveSkillFromExperience(ctx context.Context, arg RemoveSkillFromExperienceParams) error
+	RemoveSkillFromProject(ctx context.Context, arg RemoveSkillFromProjectParams) error
+	UpdateAchievement(ctx context.Context, arg UpdateAchievementParams) (Achievement, error)
+	UpdateExperience(ctx context.Context, arg UpdateExperienceParams) (Experience, error)
+	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 }
 
 var _ Querier = (*Queries)(nil)
