@@ -27,6 +27,15 @@ func (r *SkillRepo) GetSkills(ctx context.Context) ([]domain.Skill, error) {
 	return toDomainSkills(dbSkills), nil
 }
 
+// GetSkillByName retrieves a skill by its name.
+func (r *SkillRepo) GetSkillByName(ctx context.Context, name string) (domain.Skill, error) {
+	dbSkill, err := r.queries.GetSkillByName(ctx, name)
+	if err != nil {
+		return domain.Skill{}, err
+	}
+	return toDomainSkill(dbSkill), nil
+}
+
 // CreateSkill adds a new skill in the database using the provided context and domain.Skill object.
 func (r *SkillRepo) CreateSkill(ctx context.Context, s domain.Skill) error {
 	_, err := r.queries.CreateSkill(ctx, CreateSkillParams{
