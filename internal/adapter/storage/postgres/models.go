@@ -8,6 +8,62 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Achievement struct {
+	ID           int32              `json:"id"`
+	Title        string             `json:"title"`
+	Description  string             `json:"description"`
+	Date         pgtype.Date        `json:"date"`
+	ExperienceID pgtype.Int4        `json:"experience_id"`
+	ProjectID    pgtype.Int4        `json:"project_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type AchievementSkill struct {
+	AchievementID int32 `json:"achievement_id"`
+	SkillID       int32 `json:"skill_id"`
+}
+
+type Experience struct {
+	ID          int32              `json:"id"`
+	CompanyName string             `json:"company_name"`
+	JobTitle    string             `json:"job_title"`
+	Location    pgtype.Text        `json:"location"`
+	StartDate   pgtype.Date        `json:"start_date"`
+	EndDate     pgtype.Date        `json:"end_date"`
+	Description string             `json:"description"`
+	Highlights  pgtype.Text        `json:"highlights"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ExperienceProject struct {
+	ExperienceID int32 `json:"experience_id"`
+	ProjectID    int32 `json:"project_id"`
+}
+
+type ExperienceSkill struct {
+	ExperienceID int32 `json:"experience_id"`
+	SkillID      int32 `json:"skill_id"`
+}
+
+type Project struct {
+	ID          int32              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Url         pgtype.Text        `json:"url"`
+	RepoUrl     pgtype.Text        `json:"repo_url"`
+	StartDate   pgtype.Date        `json:"start_date"`
+	EndDate     pgtype.Date        `json:"end_date"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProjectSkill struct {
+	ProjectID int32 `json:"project_id"`
+	SkillID   int32 `json:"skill_id"`
+}
+
 type Skill struct {
 	ID          int32       `json:"id"`
 	Name        string      `json:"name"`
