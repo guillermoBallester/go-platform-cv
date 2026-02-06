@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"time"
-
 	"github.com/guillermoBallester/go-platform-cv/internal/core/domain"
 )
 
@@ -115,16 +113,4 @@ func toDomainAchievements(dbAchs []Achievement) []domain.Achievement {
 		achs[i] = toDomainAchievement(a)
 	}
 	return achs
-}
-
-// Helper to convert time.Time to pgtype-compatible values for inserts
-func toDate(t time.Time) time.Time {
-	return t
-}
-
-func toNullableDate(t *time.Time) any {
-	if t == nil {
-		return nil
-	}
-	return *t
 }
