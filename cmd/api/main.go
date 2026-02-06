@@ -10,12 +10,12 @@ import (
 	"github.com/guillermoBallester/go-platform-cv/internal/config"
 	"github.com/guillermoBallester/go-platform-cv/internal/service"
 	"github.com/guillermoBallester/go-platform-cv/sql"
-	"github.com/guillermoBallester/go-platform-cv/sql/data"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// Load configuration
 	cfg, err := config.Load()
@@ -42,22 +42,16 @@ func main() {
 	achievementRepo := postgres.NewAchievementRepository(queries)
 	projectRepo := postgres.NewProjectRepository(queries)
 	cvSvc := service.NewCVService(skillsRepo, expRepo, achievementRepo, projectRepo)
+	seedSvc := service.NewSeedService(skillsRepo, expRepo, achievementRepo, projectRepo)
 
-	// Seed data
-	if err := cvSvc.SeedSkills(ctx, data.SkillsJSON); err != nil {
-		log.Printf("Warning: could not seed skills: %v", err)
-	}
-	if err := cvSvc.SeedExperiences(ctx, data.ExperiencesJSON); err != nil {
-		log.Printf("Warning: could not seed experiences: %v", err)
-	}
-	if err := cvSvc.SeedAchievements(ctx, data.AchievementsJSON); err != nil {
-		log.Printf("Warning: could not seed achievements: %v", err)
-	}
-	if err := cvSvc.SeedProjects(ctx, data.ProjectsJSON); err != nil {
-		log.Printf("Warning: could not seed projects: %v", err)
+	// Orchestration
+	if cfg.App.SeedData {
+		if err := seedSvc.Run(ctx); err != nil {
+			log.Printf("Seed warning: %v", err)
+		}
 	}
 
-	// Init server
+	// Server Start
 	router := http.NewRouter(cvSvc)
 	log.Printf("Server initiated at http://localhost%s", cfg.Server.Address())
 	if err := router.Run(cfg.Server.Address()); err != nil {
