@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Reduced Deployment Time by 60%",
+    "description": "Led initiative to optimize CI/CD pipelines, implementing parallel builds and caching strategies that reduced average deployment time from 25 minutes to 10 minutes.",
+    "date": "2023-06-15",
+    "experience_id": null,
+    "project_id": null,
+    "skills": ["Docker", "Terraform"]
+  },
+  {
+    "title": "Kubernetes Migration",
+    "description": "Successfully migrated legacy monolithic applications to Kubernetes, improving scalability and reducing infrastructure costs by 40%.",
+    "date": "2023-01-20",
+    "experience_id": null,
+    "project_id": null,
+    "skills": ["Docker", "Terraform", "Go"]
+  },
+  {
+    "title": "Payment Gateway Implementation",
+    "description": "Designed and implemented a payment gateway handling 10,000+ daily transactions with 99.9% uptime.",
+    "date": "2021-08-10",
+    "experience_id": null,
+    "project_id": null,
+    "skills": ["Go", "Postgres"]
+  },
+  {
+    "title": "Event-Driven Architecture Adoption",
+    "description": "Introduced event-driven architecture patterns using message queues, enabling real-time data processing and improved system decoupling.",
+    "date": "2020-11-05",
+    "experience_id": null,
+    "project_id": null,
+    "skills": ["Go", "Docker"]
+  },
+  {
+    "title": "Mentorship Program",
+    "description": "Established and led a mentorship program for junior developers, resulting in improved code quality and faster onboarding times.",
+    "date": "2019-03-01",
+    "experience_id": null,
+    "project_id": null,
+    "skills": []
+  }
+]
