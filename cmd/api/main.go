@@ -39,7 +39,9 @@ func main() {
 	queries := postgres.New(dbPool)
 	skillsRepo := postgres.NewSkillRepository(queries)
 	expRepo := postgres.NewExperienceRepository(queries)
-	cvSvc := service.NewCVService(skillsRepo, expRepo)
+	achievementRepo := postgres.NewAchievementRepository(queries)
+	projectRepo := postgres.NewProjectRepository(queries)
+	cvSvc := service.NewCVService(skillsRepo, expRepo, achievementRepo, projectRepo)
 
 	// Seed data
 	if err := cvSvc.SeedSkills(ctx, data.SkillsJSON); err != nil {
@@ -47,6 +49,12 @@ func main() {
 	}
 	if err := cvSvc.SeedExperiences(ctx, data.ExperiencesJSON); err != nil {
 		log.Printf("Warning: could not seed experiences: %v", err)
+	}
+	if err := cvSvc.SeedAchievements(ctx, data.AchievementsJSON); err != nil {
+		log.Printf("Warning: could not seed achievements: %v", err)
+	}
+	if err := cvSvc.SeedProjects(ctx, data.ProjectsJSON); err != nil {
+		log.Printf("Warning: could not seed projects: %v", err)
 	}
 
 	// Init server
