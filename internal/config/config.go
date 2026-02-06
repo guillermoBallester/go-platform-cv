@@ -18,7 +18,8 @@ type Config struct {
 
 // AppConfig holds application-level configuration.
 type AppConfig struct {
-	Env string `env:"APP_ENV" envDefault:"production"`
+	Env      string `env:"APP_ENV" envDefault:"production"`
+	SeedData bool   `env:"SEED_DATA" envDefault:"true"`
 }
 
 // IsDevelopment returns true if running in development mode.

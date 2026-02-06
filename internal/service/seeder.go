@@ -4,11 +4,58 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/guillermoBallester/go-platform-cv/internal/core/port"
+	"github.com/guillermoBallester/go-platform-cv/sql/data"
+	"log"
 	"time"
 
 	"github.com/guillermoBallester/go-platform-cv/internal/core/domain"
 	"github.com/jackc/pgx/v5"
 )
+
+// SeedService manages seeding data by providing methods to interact with different repository types.
+type SeedService struct {
+	skillRepo       port.SkillRepository
+	expRepo         port.ExperienceRepository
+	achievementRepo port.AchievementRepository
+	projectRepo     port.ProjectRepository
+}
+
+func NewSeedService(
+	skillRepo port.SkillRepository,
+	expRepo port.ExperienceRepository,
+	achievementRepo port.AchievementRepository,
+	projectRepo port.ProjectRepository,
+) *SeedService {
+	return &SeedService{
+		skillRepo:       skillRepo,
+		expRepo:         expRepo,
+		achievementRepo: achievementRepo,
+		projectRepo:     projectRepo,
+	}
+}
+
+func (s *SeedService) Run(ctx context.Context) error {
+	tasks := []struct {
+		name string
+		fn   func(context.Context, []byte) error
+		data []byte
+	}{
+		{"skills", s.SeedSkills, data.SkillsJSON},
+		{"experiences", s.SeedExperiences, data.ExperiencesJSON},
+		{"achievements", s.SeedAchievements, data.AchievementsJSON},
+		{"projects", s.SeedProjects, data.ProjectsJSON},
+	}
+
+	for _, task := range tasks {
+		if err := task.fn(ctx, task.data); err != nil {
+			// We log the error but continue to the next task
+			log.Printf("Warning: could not seed %s: %v", task.name, err)
+		}
+	}
+
+	return nil
+}
 
 // experienceSeed represents the JSON structure for seeding experiences.
 type experienceSeed struct {
@@ -23,7 +70,7 @@ type experienceSeed struct {
 }
 
 // SeedExperiences upserts experience data - creates new experiences or updates existing ones.
-func (s *CVService) SeedExperiences(ctx context.Context, data []byte) error {
+func (s *SeedService) SeedExperiences(ctx context.Context, data []byte) error {
 	var seeds []experienceSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -69,7 +116,7 @@ func (s *CVService) SeedExperiences(ctx context.Context, data []byte) error {
 }
 
 // linkSkillsToExperience links skills by name to an experience.
-func (s *CVService) linkSkillsToExperience(ctx context.Context, expID int32, skillNames []string) error {
+func (s *SeedService) linkSkillsToExperience(ctx context.Context, expID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
 		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
 		if err != nil {
@@ -82,7 +129,7 @@ func (s *CVService) linkSkillsToExperience(ctx context.Context, expID int32, ski
 	return nil
 }
 
-func (s *CVService) parseExperienceSeed(seed experienceSeed) (domain.Experience, error) {
+func (s *SeedService) parseExperienceSeed(seed experienceSeed) (domain.Experience, error) {
 	startDate, err := parseDate(seed.StartDate)
 	if err != nil {
 		return domain.Experience{}, err
@@ -119,7 +166,7 @@ type achievementSeed struct {
 }
 
 // SeedAchievements upserts achievement data - creates new achievements or updates existing ones.
-func (s *CVService) SeedAchievements(ctx context.Context, data []byte) error {
+func (s *SeedService) SeedAchievements(ctx context.Context, data []byte) error {
 	var seeds []achievementSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -165,7 +212,7 @@ func (s *CVService) SeedAchievements(ctx context.Context, data []byte) error {
 }
 
 // linkSkillsToAchievement links skills by name to an achievement.
-func (s *CVService) linkSkillsToAchievement(ctx context.Context, achID int32, skillNames []string) error {
+func (s *SeedService) linkSkillsToAchievement(ctx context.Context, achID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
 		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
 		if err != nil {
@@ -178,7 +225,7 @@ func (s *CVService) linkSkillsToAchievement(ctx context.Context, achID int32, sk
 	return nil
 }
 
-func (s *CVService) parseAchievementSeed(seed achievementSeed) (domain.Achievement, error) {
+func (s *SeedService) parseAchievementSeed(seed achievementSeed) (domain.Achievement, error) {
 	var date *time.Time
 	if seed.Date != nil {
 		parsed, err := parseDate(*seed.Date)
@@ -207,7 +254,7 @@ type projectSeed struct {
 }
 
 // SeedProjects upserts project data - creates new projects or updates existing ones.
-func (s *CVService) SeedProjects(ctx context.Context, data []byte) error {
+func (s *SeedService) SeedProjects(ctx context.Context, data []byte) error {
 	var seeds []projectSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -253,7 +300,7 @@ func (s *CVService) SeedProjects(ctx context.Context, data []byte) error {
 }
 
 // linkSkillsToProject links skills by name to a project.
-func (s *CVService) linkSkillsToProject(ctx context.Context, projID int32, skillNames []string) error {
+func (s *SeedService) linkSkillsToProject(ctx context.Context, projID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
 		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
 		if err != nil {
@@ -266,7 +313,7 @@ func (s *CVService) linkSkillsToProject(ctx context.Context, projID int32, skill
 	return nil
 }
 
-func (s *CVService) parseProjectSeed(seed projectSeed) (domain.Project, error) {
+func (s *SeedService) parseProjectSeed(seed projectSeed) (domain.Project, error) {
 	var startDate *time.Time
 	if seed.StartDate != nil {
 		parsed, err := parseDate(*seed.StartDate)
@@ -306,7 +353,7 @@ type skillSeed struct {
 }
 
 // SeedSkills upserts skills data - creates new skills or updates existing ones.
-func (s *CVService) SeedSkills(ctx context.Context, data []byte) error {
+func (s *SeedService) SeedSkills(ctx context.Context, data []byte) error {
 	var seeds []skillSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
