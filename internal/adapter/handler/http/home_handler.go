@@ -22,7 +22,7 @@ func (r *Router) HandleHome(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"Title":       "Mi CV - Platform Engineer",
+		"Title":       "Mi CvService - Platform Engineer",
 		"Skills":      skills,
 		"Experiences": experiences,
 	})

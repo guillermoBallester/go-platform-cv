@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/guillermoBallester/go-platform-cv/internal/core/port"
+	"github.com/guillermoBallester/go-platform-cv/internal/adapter/storage/postgres"
 	"github.com/guillermoBallester/go-platform-cv/sql/data"
 	"log"
 	"time"
@@ -15,23 +15,14 @@ import (
 
 // SeedService manages seeding data by providing methods to interact with different repository types.
 type SeedService struct {
-	skillRepo       port.SkillRepository
-	expRepo         port.ExperienceRepository
-	achievementRepo port.AchievementRepository
-	projectRepo     port.ProjectRepository
+	dbRepositories postgres.Repositories
 }
 
 func NewSeedService(
-	skillRepo port.SkillRepository,
-	expRepo port.ExperienceRepository,
-	achievementRepo port.AchievementRepository,
-	projectRepo port.ProjectRepository,
+	dbRepositories postgres.Repositories,
 ) *SeedService {
 	return &SeedService{
-		skillRepo:       skillRepo,
-		expRepo:         expRepo,
-		achievementRepo: achievementRepo,
-		projectRepo:     projectRepo,
+		dbRepositories: dbRepositories,
 	}
 }
 
@@ -82,10 +73,10 @@ func (s *SeedService) SeedExperiences(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		existing, err := s.expRepo.GetExperienceByCompanyAndTitle(ctx, seed.CompanyName, seed.JobTitle)
+		existing, err := s.dbRepositories.Experiences.GetExperienceByCompanyAndTitle(ctx, seed.CompanyName, seed.JobTitle)
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Create new experience
-			expID, err := s.expRepo.CreateExperience(ctx, exp)
+			expID, err := s.dbRepositories.Experiences.CreateExperience(ctx, exp)
 			if err != nil {
 				return err
 			}
@@ -100,12 +91,12 @@ func (s *SeedService) SeedExperiences(ctx context.Context, data []byte) error {
 
 		// Update existing experience
 		exp.ID = existing.ID
-		if err := s.expRepo.UpdateExperience(ctx, exp); err != nil {
+		if err := s.dbRepositories.Experiences.UpdateExperience(ctx, exp); err != nil {
 			return err
 		}
 
 		// Re-link skills (clear + re-add)
-		if err := s.expRepo.ClearSkillsFromExperience(ctx, existing.ID); err != nil {
+		if err := s.dbRepositories.Experiences.ClearSkillsFromExperience(ctx, existing.ID); err != nil {
 			return err
 		}
 		if err := s.linkSkillsToExperience(ctx, existing.ID, seed.Skills); err != nil {
@@ -118,11 +109,11 @@ func (s *SeedService) SeedExperiences(ctx context.Context, data []byte) error {
 // linkSkillsToExperience links skills by name to an experience.
 func (s *SeedService) linkSkillsToExperience(ctx context.Context, expID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
-		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		skill, err := s.dbRepositories.Skills.GetSkillByName(ctx, skillName)
 		if err != nil {
 			continue // Skip if skill not found
 		}
-		if err := s.expRepo.AddSkillToExperience(ctx, expID, skill.ID); err != nil {
+		if err := s.dbRepositories.Experiences.AddSkillToExperience(ctx, expID, skill.ID); err != nil {
 			return err
 		}
 	}
@@ -178,10 +169,10 @@ func (s *SeedService) SeedAchievements(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		existing, err := s.achievementRepo.GetAchievementByTitle(ctx, seed.Title)
+		existing, err := s.dbRepositories.Achievements.GetAchievementByTitle(ctx, seed.Title)
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Create new achievement
-			achID, err := s.achievementRepo.CreateAchievement(ctx, ach)
+			achID, err := s.dbRepositories.Achievements.CreateAchievement(ctx, ach)
 			if err != nil {
 				return err
 			}
@@ -196,12 +187,12 @@ func (s *SeedService) SeedAchievements(ctx context.Context, data []byte) error {
 
 		// Update existing achievement
 		ach.ID = existing.ID
-		if err := s.achievementRepo.UpdateAchievement(ctx, ach); err != nil {
+		if err := s.dbRepositories.Achievements.UpdateAchievement(ctx, ach); err != nil {
 			return err
 		}
 
 		// Re-link skills (clear + re-add)
-		if err := s.achievementRepo.ClearSkillsFromAchievement(ctx, existing.ID); err != nil {
+		if err := s.dbRepositories.Achievements.ClearSkillsFromAchievement(ctx, existing.ID); err != nil {
 			return err
 		}
 		if err := s.linkSkillsToAchievement(ctx, existing.ID, seed.Skills); err != nil {
@@ -214,11 +205,11 @@ func (s *SeedService) SeedAchievements(ctx context.Context, data []byte) error {
 // linkSkillsToAchievement links skills by name to an achievement.
 func (s *SeedService) linkSkillsToAchievement(ctx context.Context, achID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
-		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		skill, err := s.dbRepositories.Skills.GetSkillByName(ctx, skillName)
 		if err != nil {
 			continue // Skip if skill not found
 		}
-		if err := s.achievementRepo.AddSkillToAchievement(ctx, achID, skill.ID); err != nil {
+		if err := s.dbRepositories.Achievements.AddSkillToAchievement(ctx, achID, skill.ID); err != nil {
 			return err
 		}
 	}
@@ -266,10 +257,10 @@ func (s *SeedService) SeedProjects(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		existing, err := s.projectRepo.GetProjectByName(ctx, seed.Name)
+		existing, err := s.dbRepositories.Projects.GetProjectByName(ctx, seed.Name)
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Create new project
-			projID, err := s.projectRepo.CreateProject(ctx, proj)
+			projID, err := s.dbRepositories.Projects.CreateProject(ctx, proj)
 			if err != nil {
 				return err
 			}
@@ -284,12 +275,12 @@ func (s *SeedService) SeedProjects(ctx context.Context, data []byte) error {
 
 		// Update existing project
 		proj.ID = existing.ID
-		if err := s.projectRepo.UpdateProject(ctx, proj); err != nil {
+		if err := s.dbRepositories.Projects.UpdateProject(ctx, proj); err != nil {
 			return err
 		}
 
 		// Re-link skills (clear + re-add)
-		if err := s.projectRepo.ClearSkillsFromProject(ctx, existing.ID); err != nil {
+		if err := s.dbRepositories.Projects.ClearSkillsFromProject(ctx, existing.ID); err != nil {
 			return err
 		}
 		if err := s.linkSkillsToProject(ctx, existing.ID, seed.Skills); err != nil {
@@ -302,11 +293,11 @@ func (s *SeedService) SeedProjects(ctx context.Context, data []byte) error {
 // linkSkillsToProject links skills by name to a project.
 func (s *SeedService) linkSkillsToProject(ctx context.Context, projID int32, skillNames []string) error {
 	for _, skillName := range skillNames {
-		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		skill, err := s.dbRepositories.Skills.GetSkillByName(ctx, skillName)
 		if err != nil {
 			continue // Skip if skill not found
 		}
-		if err := s.projectRepo.AddSkillToProject(ctx, projID, skill.ID); err != nil {
+		if err := s.dbRepositories.Projects.AddSkillToProject(ctx, projID, skill.ID); err != nil {
 			return err
 		}
 	}
@@ -365,10 +356,10 @@ func (s *SeedService) SeedSkills(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		existing, err := s.skillRepo.GetSkillByName(ctx, seed.Name)
+		existing, err := s.dbRepositories.Skills.GetSkillByName(ctx, seed.Name)
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Create new skill
-			if err := s.skillRepo.CreateSkill(ctx, skill); err != nil {
+			if err := s.dbRepositories.Skills.CreateSkill(ctx, skill); err != nil {
 				return err
 			}
 			continue
@@ -379,7 +370,7 @@ func (s *SeedService) SeedSkills(ctx context.Context, data []byte) error {
 
 		// Update existing skill
 		skill.ID = existing.ID
-		if err := s.skillRepo.UpdateSkill(ctx, skill); err != nil {
+		if err := s.dbRepositories.Skills.UpdateSkill(ctx, skill); err != nil {
 			return err
 		}
 	}
