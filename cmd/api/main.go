@@ -28,11 +28,15 @@ func main() {
 	// Dependency Injection
 	queries := postgres.New(dbPool)
 	skillsRepo := postgres.NewSkillRepository(queries)
-	cvSvc := service.NewCVService(skillsRepo)
+	expRepo := postgres.NewExperienceRepository(queries)
+	cvSvc := service.NewCVService(skillsRepo, expRepo)
 
 	// Seed data
 	if err := cvSvc.SeedSkills(ctx, data.SkillsJSON); err != nil {
 		log.Printf("Warning: could not seed skills: %v", err)
+	}
+	if err := cvSvc.SeedExperiences(ctx, data.ExperiencesJSON); err != nil {
+		log.Printf("Warning: could not seed experiences: %v", err)
 	}
 
 	// Init server

@@ -35,6 +35,7 @@ type Querier interface {
 	GetProject(ctx context.Context, id int32) (Project, error)
 	// Full project with skills (for display/RAG)
 	GetProjectWithSkills(ctx context.Context, id int32) ([]GetProjectWithSkillsRow, error)
+	GetSkillByName(ctx context.Context, name string) (Skill, error)
 	ListAchievements(ctx context.Context) ([]Achievement, error)
 	// Filter by context
 	ListAchievementsForExperience(ctx context.Context, experienceID pgtype.Int4) ([]Achievement, error)

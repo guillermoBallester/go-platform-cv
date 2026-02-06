@@ -1,0 +1,32 @@
+[
+  {
+    "company_name": "Coop Norge",
+    "job_title": "Senior Software Engineer",
+    "location": "Oslo, Norway",
+    "start_date": "2022-03-01",
+    "end_date": null,
+    "description": "Leading the platform engineering team, designing and implementing cloud-native infrastructure solutions. Building internal developer platforms and improving CI/CD pipelines.",
+    "highlights": "Reduced deployment time by 60%. Migrated legacy systems to Kubernetes.",
+    "skills": ["Go", "Terraform", "Docker", "Postgres"]
+  },
+  {
+    "company_name": "StartupXYZ",
+    "job_title": "Backend Developer",
+    "location": "Barcelona, Spain",
+    "start_date": "2019-06-15",
+    "end_date": "2022-02-28",
+    "description": "Developed microservices architecture for a fintech platform. Implemented payment processing systems and real-time data pipelines.",
+    "highlights": "Built payment gateway handling 10k transactions/day. Introduced event-driven architecture.",
+    "skills": ["Go", "Postgres", "Docker"]
+  },
+  {
+    "company_name": "Digital Agency",
+    "job_title": "Software Developer",
+    "location": "Madrid, Spain",
+    "start_date": "2017-01-10",
+    "end_date": "2019-05-31",
+    "description": "Full-stack development for various client projects. Built REST APIs and web applications for e-commerce and media companies.",
+    "highlights": "Delivered 15+ client projects. Mentored junior developers.",
+    "skills": ["Postgres", "Docker"]
+  }
+]

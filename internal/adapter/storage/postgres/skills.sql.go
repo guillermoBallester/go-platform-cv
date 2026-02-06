@@ -42,6 +42,23 @@ func (q *Queries) CreateSkill(ctx context.Context, arg CreateSkillParams) (Skill
 	return i, err
 }
 
+const getSkillByName = `-- name: GetSkillByName :one
+SELECT id, name, category, proficiency, logo_url FROM skills WHERE name = $1
+`
+
+func (q *Queries) GetSkillByName(ctx context.Context, name string) (Skill, error) {
+	row := q.db.QueryRow(ctx, getSkillByName, name)
+	var i Skill
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Category,
+		&i.Proficiency,
+		&i.LogoUrl,
+	)
+	return i, err
+}
+
 const listSkills = `-- name: ListSkills :many
 SELECT id, name, category, proficiency, logo_url FROM skills ORDER BY category, name
 `
