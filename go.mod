@@ -3,6 +3,7 @@ module github.com/guillermoBallester/go-platform-cv
 go 1.25.3
 
 require (
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/pressly/goose/v3 v3.26.0

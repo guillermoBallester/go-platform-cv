@@ -3,26 +3,36 @@ package main
 import (
 	"context"
 	_ "embed"
+	"log"
+
 	"github.com/guillermoBallester/go-platform-cv/internal/adapter/handler/http"
 	"github.com/guillermoBallester/go-platform-cv/internal/adapter/storage/postgres"
+	"github.com/guillermoBallester/go-platform-cv/internal/config"
 	"github.com/guillermoBallester/go-platform-cv/internal/service"
 	"github.com/guillermoBallester/go-platform-cv/sql"
 	"github.com/guillermoBallester/go-platform-cv/sql/data"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"log"
-	"os"
 )
 
 func main() {
 	ctx := context.Background()
 
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Failed to load configuration: ", err)
+	}
+
 	// Infra: Database Connection
-	dbPool := initDB(ctx)
+	dbPool, err := initDB(ctx, cfg)
+	if err != nil {
+		log.Fatal("Cannot connect to DB: ", err)
+	}
 	defer dbPool.Close()
 
 	// Infra: migrations
 	if err := sql.RunMigrations(dbPool); err != nil {
-		log.Fatal("Cannot migrate to DB:", err)
+		log.Fatal("Cannot migrate to DB: ", err)
 	}
 
 	// Dependency Injection
@@ -41,20 +51,22 @@ func main() {
 
 	// Init server
 	router := http.NewRouter(cvSvc)
-	log.Println("Server initiated in http://localhost:8080")
-	if err := router.Run(":8080"); err != nil {
+	log.Printf("Server initiated at http://localhost%s", cfg.Server.Address())
+	if err := router.Run(cfg.Server.Address()); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func initDB(ctx context.Context) *pgxpool.Pool {
-	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		connStr = "postgres://postgres:postgres@localhost:5432/gocv?sslmode=disable"
-	}
-	dbPool, err := pgxpool.New(ctx, connStr)
+func initDB(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
+	poolConfig, err := pgxpool.ParseConfig(cfg.Database.ConnectionString())
 	if err != nil {
-		log.Fatal("Cannot connect to DB:", err)
+		return nil, err
 	}
-	return dbPool
+
+	// Apply connection pool settings from config
+	poolConfig.MaxConns = int32(cfg.Database.MaxOpenConns)
+	poolConfig.MinConns = int32(cfg.Database.MaxIdleConns)
+	poolConfig.MaxConnLifetime = cfg.Database.ConnMaxLifetime
+
+	return pgxpool.NewWithConfig(ctx, poolConfig)
 }
