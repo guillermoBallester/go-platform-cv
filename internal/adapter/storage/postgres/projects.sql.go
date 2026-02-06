@@ -26,6 +26,15 @@ func (q *Queries) AddSkillToProject(ctx context.Context, arg AddSkillToProjectPa
 	return err
 }
 
+const clearSkillsFromProject = `-- name: ClearSkillsFromProject :exec
+DELETE FROM project_skills WHERE project_id = $1
+`
+
+func (q *Queries) ClearSkillsFromProject(ctx context.Context, projectID int32) error {
+	_, err := q.db.Exec(ctx, clearSkillsFromProject, projectID)
+	return err
+}
+
 const createProject = `-- name: CreateProject :one
 INSERT INTO projects (name, description, start_date, end_date)
 VALUES ($1, $2, $3, $4)
@@ -74,6 +83,25 @@ SELECT id, name, description, start_date, end_date, created_at, updated_at FROM 
 
 func (q *Queries) GetProject(ctx context.Context, id int32) (Project, error) {
 	row := q.db.QueryRow(ctx, getProject, id)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getProjectByName = `-- name: GetProjectByName :one
+SELECT id, name, description, start_date, end_date, created_at, updated_at FROM projects WHERE name = $1
+`
+
+func (q *Queries) GetProjectByName(ctx context.Context, name string) (Project, error) {
+	row := q.db.QueryRow(ctx, getProjectByName, name)
 	var i Project
 	err := row.Scan(
 		&i.ID,

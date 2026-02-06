@@ -38,6 +38,12 @@ JOIN achievement_skills aks ON a.id = aks.achievement_id
 WHERE aks.skill_id = $1
 ORDER BY a.date DESC NULLS LAST;
 
+-- name: GetAchievementByTitle :one
+SELECT * FROM achievements WHERE title = $1;
+
+-- name: ClearSkillsFromAchievement :exec
+DELETE FROM achievement_skills WHERE achievement_id = $1;
+
 -- Filter by context
 -- name: ListAchievementsForExperience :many
 SELECT * FROM achievements WHERE experience_id = $1 ORDER BY date DESC NULLS LAST;

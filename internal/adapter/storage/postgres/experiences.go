@@ -121,3 +121,39 @@ func (r *ExperienceRepo) AddSkillToExperience(ctx context.Context, experienceID,
 		SkillID:      skillID,
 	})
 }
+
+// GetExperienceByCompanyAndTitle retrieves an experience by company name and job title.
+func (r *ExperienceRepo) GetExperienceByCompanyAndTitle(ctx context.Context, companyName, jobTitle string) (domain.Experience, error) {
+	dbExp, err := r.queries.GetExperienceByCompanyAndTitle(ctx, GetExperienceByCompanyAndTitleParams{
+		CompanyName: companyName,
+		JobTitle:    jobTitle,
+	})
+	if err != nil {
+		return domain.Experience{}, err
+	}
+	return toDomainExperience(dbExp), nil
+}
+
+// UpdateExperience updates an existing experience in the database.
+func (r *ExperienceRepo) UpdateExperience(ctx context.Context, e domain.Experience) error {
+	params := UpdateExperienceParams{
+		ID:          e.ID,
+		CompanyName: e.CompanyName,
+		JobTitle:    e.JobTitle,
+		Location:    pgtype.Text{String: e.Location, Valid: e.Location != ""},
+		StartDate:   pgtype.Date{Time: e.StartDate, Valid: true},
+		Description: e.Description,
+		Highlights:  pgtype.Text{String: e.Highlights, Valid: e.Highlights != ""},
+	}
+	if e.EndDate != nil {
+		params.EndDate = pgtype.Date{Time: *e.EndDate, Valid: true}
+	}
+
+	_, err := r.queries.UpdateExperience(ctx, params)
+	return err
+}
+
+// ClearSkillsFromExperience removes all skill links from an experience.
+func (r *ExperienceRepo) ClearSkillsFromExperience(ctx context.Context, experienceID int32) error {
+	return r.queries.ClearSkillsFromExperience(ctx, experienceID)
+}

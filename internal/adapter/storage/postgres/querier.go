@@ -19,6 +19,9 @@ type Querier interface {
 	AddSkillToExperience(ctx context.Context, arg AddSkillToExperienceParams) error
 	// Skill linking
 	AddSkillToProject(ctx context.Context, arg AddSkillToProjectParams) error
+	ClearSkillsFromAchievement(ctx context.Context, achievementID int32) error
+	ClearSkillsFromExperience(ctx context.Context, experienceID int32) error
+	ClearSkillsFromProject(ctx context.Context, projectID int32) error
 	CreateAchievement(ctx context.Context, arg CreateAchievementParams) (Achievement, error)
 	CreateExperience(ctx context.Context, arg CreateExperienceParams) (Experience, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
@@ -27,12 +30,15 @@ type Querier interface {
 	DeleteExperience(ctx context.Context, id int32) error
 	DeleteProject(ctx context.Context, id int32) error
 	GetAchievement(ctx context.Context, id int32) (Achievement, error)
+	GetAchievementByTitle(ctx context.Context, title string) (Achievement, error)
 	// Full achievement with skills (for display/RAG)
 	GetAchievementWithSkills(ctx context.Context, id int32) ([]GetAchievementWithSkillsRow, error)
 	GetExperience(ctx context.Context, id int32) (Experience, error)
+	GetExperienceByCompanyAndTitle(ctx context.Context, arg GetExperienceByCompanyAndTitleParams) (Experience, error)
 	// Full experience with skills (for display/RAG)
 	GetExperienceWithSkills(ctx context.Context, id int32) ([]GetExperienceWithSkillsRow, error)
 	GetProject(ctx context.Context, id int32) (Project, error)
+	GetProjectByName(ctx context.Context, name string) (Project, error)
 	// Full project with skills (for display/RAG)
 	GetProjectWithSkills(ctx context.Context, id int32) ([]GetProjectWithSkillsRow, error)
 	GetSkillByName(ctx context.Context, name string) (Skill, error)
@@ -61,6 +67,7 @@ type Querier interface {
 	UpdateAchievement(ctx context.Context, arg UpdateAchievementParams) (Achievement, error)
 	UpdateExperience(ctx context.Context, arg UpdateExperienceParams) (Experience, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	UpdateSkill(ctx context.Context, arg UpdateSkillParams) (Skill, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -88,3 +88,33 @@ func (q *Queries) ListSkills(ctx context.Context) ([]Skill, error) {
 	}
 	return items, nil
 }
+
+const updateSkill = `-- name: UpdateSkill :one
+UPDATE skills SET category = $2, proficiency = $3, logo_url = $4, updated_at = NOW()
+WHERE id = $1 RETURNING id, name, category, proficiency, logo_url
+`
+
+type UpdateSkillParams struct {
+	ID          int32       `json:"id"`
+	Category    string      `json:"category"`
+	Proficiency pgtype.Int4 `json:"proficiency"`
+	LogoUrl     pgtype.Text `json:"logo_url"`
+}
+
+func (q *Queries) UpdateSkill(ctx context.Context, arg UpdateSkillParams) (Skill, error) {
+	row := q.db.QueryRow(ctx, updateSkill,
+		arg.ID,
+		arg.Category,
+		arg.Proficiency,
+		arg.LogoUrl,
+	)
+	var i Skill
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Category,
+		&i.Proficiency,
+		&i.LogoUrl,
+	)
+	return i, err
+}

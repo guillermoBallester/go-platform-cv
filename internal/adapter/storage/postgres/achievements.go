@@ -78,3 +78,38 @@ func (r *AchievementRepo) AddSkillToAchievement(ctx context.Context, achievement
 		SkillID:       skillID,
 	})
 }
+
+// GetAchievementByTitle retrieves an achievement by its title.
+func (r *AchievementRepo) GetAchievementByTitle(ctx context.Context, title string) (domain.Achievement, error) {
+	dbAch, err := r.queries.GetAchievementByTitle(ctx, title)
+	if err != nil {
+		return domain.Achievement{}, err
+	}
+	return toDomainAchievement(dbAch), nil
+}
+
+// UpdateAchievement updates an existing achievement in the database.
+func (r *AchievementRepo) UpdateAchievement(ctx context.Context, a domain.Achievement) error {
+	params := UpdateAchievementParams{
+		ID:          a.ID,
+		Title:       a.Title,
+		Description: a.Description,
+	}
+	if a.Date != nil {
+		params.Date = pgtype.Date{Time: *a.Date, Valid: true}
+	}
+	if a.ExperienceID != nil {
+		params.ExperienceID = pgtype.Int4{Int32: *a.ExperienceID, Valid: true}
+	}
+	if a.ProjectID != nil {
+		params.ProjectID = pgtype.Int4{Int32: *a.ProjectID, Valid: true}
+	}
+
+	_, err := r.queries.UpdateAchievement(ctx, params)
+	return err
+}
+
+// ClearSkillsFromAchievement removes all skill links from an achievement.
+func (r *AchievementRepo) ClearSkillsFromAchievement(ctx context.Context, achievementID int32) error {
+	return r.queries.ClearSkillsFromAchievement(ctx, achievementID)
+}

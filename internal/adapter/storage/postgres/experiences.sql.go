@@ -41,6 +41,15 @@ func (q *Queries) AddSkillToExperience(ctx context.Context, arg AddSkillToExperi
 	return err
 }
 
+const clearSkillsFromExperience = `-- name: ClearSkillsFromExperience :exec
+DELETE FROM experience_skills WHERE experience_id = $1
+`
+
+func (q *Queries) ClearSkillsFromExperience(ctx context.Context, experienceID int32) error {
+	_, err := q.db.Exec(ctx, clearSkillsFromExperience, experienceID)
+	return err
+}
+
 const createExperience = `-- name: CreateExperience :one
 INSERT INTO experiences (company_name, job_title, location, start_date, end_date, description, highlights)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -98,6 +107,33 @@ SELECT id, company_name, job_title, location, start_date, end_date, description,
 
 func (q *Queries) GetExperience(ctx context.Context, id int32) (Experience, error) {
 	row := q.db.QueryRow(ctx, getExperience, id)
+	var i Experience
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyName,
+		&i.JobTitle,
+		&i.Location,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Description,
+		&i.Highlights,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getExperienceByCompanyAndTitle = `-- name: GetExperienceByCompanyAndTitle :one
+SELECT id, company_name, job_title, location, start_date, end_date, description, highlights, created_at, updated_at FROM experiences WHERE company_name = $1 AND job_title = $2
+`
+
+type GetExperienceByCompanyAndTitleParams struct {
+	CompanyName string `json:"company_name"`
+	JobTitle    string `json:"job_title"`
+}
+
+func (q *Queries) GetExperienceByCompanyAndTitle(ctx context.Context, arg GetExperienceByCompanyAndTitleParams) (Experience, error) {
+	row := q.db.QueryRow(ctx, getExperienceByCompanyAndTitle, arg.CompanyName, arg.JobTitle)
 	var i Experience
 	err := row.Scan(
 		&i.ID,
