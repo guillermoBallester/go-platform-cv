@@ -3,8 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"github.com/guillermoBallester/go-platform-cv/internal/core/domain"
+	"errors"
 	"time"
+
+	"github.com/guillermoBallester/go-platform-cv/internal/core/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 // experienceSeed represents the JSON structure for seeding experiences.
@@ -19,16 +22,8 @@ type experienceSeed struct {
 	Skills      []string `json:"skills"`
 }
 
-// SeedExperiences initializes the database with experience data if no experiences exist.
+// SeedExperiences upserts experience data - creates new experiences or updates existing ones.
 func (s *CVService) SeedExperiences(ctx context.Context, data []byte) error {
-	current, err := s.expRepo.GetExperiences(ctx)
-	if err != nil {
-		return err
-	}
-	if len(current) > 0 {
-		return nil
-	}
-
 	var seeds []experienceSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -40,20 +35,48 @@ func (s *CVService) SeedExperiences(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		expID, err := s.expRepo.CreateExperience(ctx, exp)
+		existing, err := s.expRepo.GetExperienceByCompanyAndTitle(ctx, seed.CompanyName, seed.JobTitle)
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Create new experience
+			expID, err := s.expRepo.CreateExperience(ctx, exp)
+			if err != nil {
+				return err
+			}
+			if err := s.linkSkillsToExperience(ctx, expID, seed.Skills); err != nil {
+				return err
+			}
+			continue
+		}
 		if err != nil {
 			return err
 		}
 
-		// Link skills to this experience
-		for _, skillName := range seed.Skills {
-			skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
-			if err != nil {
-				continue // Skip if skill not found
-			}
-			if err := s.expRepo.AddSkillToExperience(ctx, expID, skill.ID); err != nil {
-				return err
-			}
+		// Update existing experience
+		exp.ID = existing.ID
+		if err := s.expRepo.UpdateExperience(ctx, exp); err != nil {
+			return err
+		}
+
+		// Re-link skills (clear + re-add)
+		if err := s.expRepo.ClearSkillsFromExperience(ctx, existing.ID); err != nil {
+			return err
+		}
+		if err := s.linkSkillsToExperience(ctx, existing.ID, seed.Skills); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// linkSkillsToExperience links skills by name to an experience.
+func (s *CVService) linkSkillsToExperience(ctx context.Context, expID int32, skillNames []string) error {
+	for _, skillName := range skillNames {
+		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		if err != nil {
+			continue // Skip if skill not found
+		}
+		if err := s.expRepo.AddSkillToExperience(ctx, expID, skill.ID); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -95,16 +118,8 @@ type achievementSeed struct {
 	Skills       []string `json:"skills"`
 }
 
-// SeedAchievements initializes the database with achievement data if no achievements exist.
+// SeedAchievements upserts achievement data - creates new achievements or updates existing ones.
 func (s *CVService) SeedAchievements(ctx context.Context, data []byte) error {
-	current, err := s.achievementRepo.GetAchievements(ctx)
-	if err != nil {
-		return err
-	}
-	if len(current) > 0 {
-		return nil
-	}
-
 	var seeds []achievementSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -116,20 +131,48 @@ func (s *CVService) SeedAchievements(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		achID, err := s.achievementRepo.CreateAchievement(ctx, ach)
+		existing, err := s.achievementRepo.GetAchievementByTitle(ctx, seed.Title)
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Create new achievement
+			achID, err := s.achievementRepo.CreateAchievement(ctx, ach)
+			if err != nil {
+				return err
+			}
+			if err := s.linkSkillsToAchievement(ctx, achID, seed.Skills); err != nil {
+				return err
+			}
+			continue
+		}
 		if err != nil {
 			return err
 		}
 
-		// Link skills to this achievement
-		for _, skillName := range seed.Skills {
-			skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
-			if err != nil {
-				continue // Skip if skill not found
-			}
-			if err := s.achievementRepo.AddSkillToAchievement(ctx, achID, skill.ID); err != nil {
-				return err
-			}
+		// Update existing achievement
+		ach.ID = existing.ID
+		if err := s.achievementRepo.UpdateAchievement(ctx, ach); err != nil {
+			return err
+		}
+
+		// Re-link skills (clear + re-add)
+		if err := s.achievementRepo.ClearSkillsFromAchievement(ctx, existing.ID); err != nil {
+			return err
+		}
+		if err := s.linkSkillsToAchievement(ctx, existing.ID, seed.Skills); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// linkSkillsToAchievement links skills by name to an achievement.
+func (s *CVService) linkSkillsToAchievement(ctx context.Context, achID int32, skillNames []string) error {
+	for _, skillName := range skillNames {
+		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		if err != nil {
+			continue // Skip if skill not found
+		}
+		if err := s.achievementRepo.AddSkillToAchievement(ctx, achID, skill.ID); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -163,16 +206,8 @@ type projectSeed struct {
 	Skills      []string `json:"skills"`
 }
 
-// SeedProjects initializes the database with project data if no projects exist.
+// SeedProjects upserts project data - creates new projects or updates existing ones.
 func (s *CVService) SeedProjects(ctx context.Context, data []byte) error {
-	current, err := s.projectRepo.GetProjects(ctx)
-	if err != nil {
-		return err
-	}
-	if len(current) > 0 {
-		return nil
-	}
-
 	var seeds []projectSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -184,20 +219,48 @@ func (s *CVService) SeedProjects(ctx context.Context, data []byte) error {
 			return err
 		}
 
-		projID, err := s.projectRepo.CreateProject(ctx, proj)
+		existing, err := s.projectRepo.GetProjectByName(ctx, seed.Name)
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Create new project
+			projID, err := s.projectRepo.CreateProject(ctx, proj)
+			if err != nil {
+				return err
+			}
+			if err := s.linkSkillsToProject(ctx, projID, seed.Skills); err != nil {
+				return err
+			}
+			continue
+		}
 		if err != nil {
 			return err
 		}
 
-		// Link skills to this project
-		for _, skillName := range seed.Skills {
-			skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
-			if err != nil {
-				continue // Skip if skill not found
-			}
-			if err := s.projectRepo.AddSkillToProject(ctx, projID, skill.ID); err != nil {
-				return err
-			}
+		// Update existing project
+		proj.ID = existing.ID
+		if err := s.projectRepo.UpdateProject(ctx, proj); err != nil {
+			return err
+		}
+
+		// Re-link skills (clear + re-add)
+		if err := s.projectRepo.ClearSkillsFromProject(ctx, existing.ID); err != nil {
+			return err
+		}
+		if err := s.linkSkillsToProject(ctx, existing.ID, seed.Skills); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// linkSkillsToProject links skills by name to a project.
+func (s *CVService) linkSkillsToProject(ctx context.Context, projID int32, skillNames []string) error {
+	for _, skillName := range skillNames {
+		skill, err := s.skillRepo.GetSkillByName(ctx, skillName)
+		if err != nil {
+			continue // Skip if skill not found
+		}
+		if err := s.projectRepo.AddSkillToProject(ctx, projID, skill.ID); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -242,16 +305,8 @@ type skillSeed struct {
 	LogoPath    string `json:"logo_url"`
 }
 
-// SeedSkills initializes the database with skills data if no skills currently exist.
+// SeedSkills upserts skills data - creates new skills or updates existing ones.
 func (s *CVService) SeedSkills(ctx context.Context, data []byte) error {
-	current, err := s.skillRepo.GetSkills(ctx)
-	if err != nil {
-		return err
-	}
-	if len(current) > 0 {
-		return nil
-	}
-
 	var seeds []skillSeed
 	if err := json.Unmarshal(data, &seeds); err != nil {
 		return err
@@ -262,7 +317,22 @@ func (s *CVService) SeedSkills(ctx context.Context, data []byte) error {
 		if err != nil {
 			return err
 		}
-		if err := s.skillRepo.CreateSkill(ctx, skill); err != nil {
+
+		existing, err := s.skillRepo.GetSkillByName(ctx, seed.Name)
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Create new skill
+			if err := s.skillRepo.CreateSkill(ctx, skill); err != nil {
+				return err
+			}
+			continue
+		}
+		if err != nil {
+			return err
+		}
+
+		// Update existing skill
+		skill.ID = existing.ID
+		if err := s.skillRepo.UpdateSkill(ctx, skill); err != nil {
 			return err
 		}
 	}

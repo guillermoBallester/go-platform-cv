@@ -75,3 +75,35 @@ func (r *ProjectRepo) AddSkillToProject(ctx context.Context, projectID, skillID 
 		SkillID:   skillID,
 	})
 }
+
+// GetProjectByName retrieves a project by its name.
+func (r *ProjectRepo) GetProjectByName(ctx context.Context, name string) (domain.Project, error) {
+	dbProj, err := r.queries.GetProjectByName(ctx, name)
+	if err != nil {
+		return domain.Project{}, err
+	}
+	return toDomainProject(dbProj), nil
+}
+
+// UpdateProject updates an existing project in the database.
+func (r *ProjectRepo) UpdateProject(ctx context.Context, p domain.Project) error {
+	params := UpdateProjectParams{
+		ID:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+	}
+	if p.StartDate != nil {
+		params.StartDate = pgtype.Date{Time: *p.StartDate, Valid: true}
+	}
+	if p.EndDate != nil {
+		params.EndDate = pgtype.Date{Time: *p.EndDate, Valid: true}
+	}
+
+	_, err := r.queries.UpdateProject(ctx, params)
+	return err
+}
+
+// ClearSkillsFromProject removes all skill links from a project.
+func (r *ProjectRepo) ClearSkillsFromProject(ctx context.Context, projectID int32) error {
+	return r.queries.ClearSkillsFromProject(ctx, projectID)
+}

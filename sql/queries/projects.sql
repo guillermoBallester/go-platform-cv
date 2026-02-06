@@ -37,6 +37,12 @@ JOIN project_skills ps ON p.id = ps.project_id
 WHERE ps.skill_id = $1
 ORDER BY p.start_date DESC NULLS LAST;
 
+-- name: GetProjectByName :one
+SELECT * FROM projects WHERE name = $1;
+
+-- name: ClearSkillsFromProject :exec
+DELETE FROM project_skills WHERE project_id = $1;
+
 -- Experience linking
 -- name: ListExperiencesForProject :many
 SELECT e.* FROM experiences e

@@ -46,3 +46,14 @@ func (r *SkillRepo) CreateSkill(ctx context.Context, s domain.Skill) error {
 	})
 	return err
 }
+
+// UpdateSkill updates an existing skill in the database.
+func (r *SkillRepo) UpdateSkill(ctx context.Context, s domain.Skill) error {
+	_, err := r.queries.UpdateSkill(ctx, UpdateSkillParams{
+		ID:          s.ID,
+		Category:    s.Category,
+		Proficiency: pgtype.Int4{Int32: s.Proficiency, Valid: true},
+		LogoUrl:     pgtype.Text{String: s.LogoPath, Valid: s.LogoPath != ""},
+	})
+	return err
+}

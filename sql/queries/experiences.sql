@@ -51,6 +51,12 @@ JOIN experience_projects ep ON p.id = ep.project_id
 WHERE ep.experience_id = $1
 ORDER BY p.start_date DESC;
 
+-- name: GetExperienceByCompanyAndTitle :one
+SELECT * FROM experiences WHERE company_name = $1 AND job_title = $2;
+
+-- name: ClearSkillsFromExperience :exec
+DELETE FROM experience_skills WHERE experience_id = $1;
+
 -- Full experience with skills (for display/RAG)
 -- name: GetExperienceWithSkills :many
 SELECT

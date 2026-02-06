@@ -11,4 +11,5 @@ type SkillRepository interface {
 	GetSkills(ctx context.Context) ([]domain.Skill, error)
 	GetSkillByName(ctx context.Context, name string) (domain.Skill, error)
 	CreateSkill(ctx context.Context, skill domain.Skill) error
+	UpdateSkill(ctx context.Context, skill domain.Skill) error
 }

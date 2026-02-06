@@ -26,6 +26,15 @@ func (q *Queries) AddSkillToAchievement(ctx context.Context, arg AddSkillToAchie
 	return err
 }
 
+const clearSkillsFromAchievement = `-- name: ClearSkillsFromAchievement :exec
+DELETE FROM achievement_skills WHERE achievement_id = $1
+`
+
+func (q *Queries) ClearSkillsFromAchievement(ctx context.Context, achievementID int32) error {
+	_, err := q.db.Exec(ctx, clearSkillsFromAchievement, achievementID)
+	return err
+}
+
 const createAchievement = `-- name: CreateAchievement :one
 INSERT INTO achievements (title, description, date, experience_id, project_id)
 VALUES ($1, $2, $3, $4, $5)
@@ -77,6 +86,26 @@ SELECT id, title, description, date, experience_id, project_id, created_at, upda
 
 func (q *Queries) GetAchievement(ctx context.Context, id int32) (Achievement, error) {
 	row := q.db.QueryRow(ctx, getAchievement, id)
+	var i Achievement
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Date,
+		&i.ExperienceID,
+		&i.ProjectID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getAchievementByTitle = `-- name: GetAchievementByTitle :one
+SELECT id, title, description, date, experience_id, project_id, created_at, updated_at FROM achievements WHERE title = $1
+`
+
+func (q *Queries) GetAchievementByTitle(ctx context.Context, title string) (Achievement, error) {
+	row := q.db.QueryRow(ctx, getAchievementByTitle, title)
 	var i Achievement
 	err := row.Scan(
 		&i.ID,
