@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/guillermoBallester/go-platform-cv/internal/service"
+	"net/http"
 )
 
 type Router struct {
@@ -27,6 +28,6 @@ func NewRouter(cvSvc *service.CVService) *Router {
 	return r
 }
 
-func (r *Router) Run(addr string) error {
-	return r.engine.Run(addr)
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.engine.ServeHTTP(w, req)
 }
